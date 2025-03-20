@@ -42,8 +42,6 @@ class ERC20Deployer:
         self.initial_supply = initial_supply
         self.show_abi = show_abi
         self.add_icon = add_icon
-        
-        # ERC-20 contract source code
         self.contract_source = '''pragma solidity ^0.8.28;
 
 contract MyToken {
@@ -107,7 +105,7 @@ contract MyToken {
     def run(self):
         result_list = []
         
-        # 1. Input validation
+
         if not self.private_key:
             self.private_key = getpass("Enter your private key: ")
             
@@ -119,7 +117,7 @@ contract MyToken {
                 return [self._log_step("input_validation", "failed", 
                                      error="Invalid initial supply input. Please enter a number.")]
 
-        # 2. Setup Solidity compiler
+
         try:
             solcx.install_solc('0.8.28')
             solcx.set_solc_version('0.8.28')
@@ -128,7 +126,7 @@ contract MyToken {
         except Exception as e:
             return [self._log_step("setup_solc", "failed", error=str(e))]
 
-        # 3. Compile contract
+
         try:
             compiled_sol = solcx.compile_source(self.contract_source, output_values=['abi', 'bin'])
             contract_interface = compiled_sol['<stdin>:MyToken']
@@ -142,7 +140,7 @@ contract MyToken {
         except Exception as e:
             return [self._log_step("compile_contract", "failed", error=str(e))]
 
-        # 4. Save ABI
+
         os.makedirs("data/contracts", exist_ok=True)
         try:
             with open("data/contracts/abi.json", 'w') as f:
@@ -152,14 +150,14 @@ contract MyToken {
         except Exception as e:
             return [self._log_step("save_abi", "failed", error=str(e))]
 
-        # 5. Check network connection
+
         if not self.web3.is_connected():
             return [self._log_step("connect_network", "failed", 
                                  error="Failed to connect to tea-assam network")]
         result_list.append(self._log_step("connect_network", "success", 
                                          message=f"Connected to tea-assam network (Chain ID: {self.chain_id})"))
 
-        # 6. Setup account
+
         try:
             account = self.web3.eth.account.from_key(self.private_key)
             result_list.append(self._log_step("setup_account", "success", 
@@ -167,11 +165,11 @@ contract MyToken {
         except Exception as e:
             return [self._log_step("setup_account", "failed", error=str(e))]
 
-        # 7. Deploy contract
+
         MyToken = self.web3.eth.contract(abi=self.abi, bytecode=self.bytecode)
         try:
             gas_estimate = MyToken.constructor(self.initial_supply).estimate_gas({'from': account.address})
-            gas_price = self.web3.eth.gas_price * 2  # 2x gas price for priority
+            gas_price = self.web3.eth.gas_price * 2  
             nonce = self.web3.eth.get_transaction_count(account.address)
             
             construct_txn = MyToken.constructor(self.initial_supply).build_transaction({
@@ -188,7 +186,6 @@ contract MyToken {
         except Exception as e:
             return [self._log_step("estimate_gas", "failed", error=str(e))]
 
-        # 8. Sign transaction
         try:
             signed_txn = account.sign_transaction(construct_txn)
             result_list.append(self._log_step("sign_transaction", "success", 
@@ -196,7 +193,6 @@ contract MyToken {
         except Exception as e:
             return [self._log_step("sign_transaction", "failed", error=str(e))]
 
-        # 9. Send transaction
         try:
             tx_hash = self.web3.eth.send_raw_transaction(signed_txn.raw_transaction)
             tx_hash_hex = self.web3.to_hex(tx_hash)
@@ -206,7 +202,6 @@ contract MyToken {
         except Exception as e:
             return [self._log_step("send_transaction", "failed", error=str(e))]
 
-        # 10. Wait for confirmation
         try:
             tx_receipt = self.web3.eth.wait_for_transaction_receipt(tx_hash, timeout=120)
             result_list.append(self._log_step("wait_receipt", "success", 
@@ -215,7 +210,6 @@ contract MyToken {
         except Exception as e:
             return [self._log_step("wait_receipt", "failed", error=str(e))]
 
-        # 11. Verify contract
         try:
             contract = self.web3.eth.contract(address=tx_receipt.contractAddress, abi=self.abi)
             token_details = {
@@ -232,7 +226,6 @@ contract MyToken {
         except Exception as e:
             result_list.append(self._log_step("verify_contract", "failed", error=str(e)))
 
-        # 12. Additional information
         if self.add_icon:
             result_list.append(self._log_step("add_icon", "info", 
                                             message=f"Token icon: {self.add_icon}",
