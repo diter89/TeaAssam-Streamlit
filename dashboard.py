@@ -113,8 +113,8 @@ custom_font_css = load_custom_font()
 if custom_font_css:
     st.markdown(custom_font_css, unsafe_allow_html=True)
 
-API_KEY = "fw_3Zhy9f3UZMdTtiQTiQ12hU6X"
-CHAT_URL = "https://assam-rpc.tea.xyz/inference/v1/chat/completions"
+API_KEY = ""
+CHAT_URL = "https://api.fireworks.ai/inference/v1/chat/completions"
 HEADERS = {
     "Accept": "application/json",
     "Content-Type": "application/json",
