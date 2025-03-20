@@ -5,7 +5,6 @@ import base64
 import asyncio
 import json
 from datetime import datetime
-from httpx_ws import aconnect_ws
 import logging
 from swaps_tokens.contract_to_tea import ContractToTea
 from swaps_tokens.tea_to_contract import TeaToContract 
